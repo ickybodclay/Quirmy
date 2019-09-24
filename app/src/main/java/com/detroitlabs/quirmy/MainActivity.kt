@@ -1,11 +1,15 @@
 package com.detroitlabs.quirmy
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.loader.app.LoaderManager
 import androidx.loader.content.Loader
 import kotlinx.android.synthetic.main.activity_main.*
@@ -15,12 +19,64 @@ import net.glxn.qrgen.core.scheme.VCard
 
 class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<AccountUtils.UserProfile> {
 
+    private val MY_PERMISSIONS_REQUEST_READ = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        LoaderManager.getInstance(this).initLoader(0, Bundle.EMPTY, this)
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_CONTACTS
+            )
+            != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_PHONE_STATE
+            )
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Permission is not granted
+            // No explanation needed, we can request the permission.
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    Manifest.permission.READ_CONTACTS,
+                    Manifest.permission.READ_PHONE_STATE
+                ),
+                MY_PERMISSIONS_REQUEST_READ
+            )
+        } else {
+            LoaderManager.getInstance(this).initLoader(0, Bundle.EMPTY, this)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>, grantResults: IntArray
+    ) {
+        when (requestCode) {
+            MY_PERMISSIONS_REQUEST_READ -> {
+                // If request is cancelled, the result arrays are empty.
+                // FIXME should check that all grants are granted
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                    LoaderManager.getInstance(this).initLoader(0, Bundle.EMPTY, this)
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return
+            }
+
+            // Add other 'when' lines to check for other
+            // permissions this app might request.
+            else -> {
+                // Ignore all other requests.
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -49,9 +105,17 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<AccountU
     ) {
         Log.d(localClassName, data!!.toString())
 
+        val phoneNumber =
+            if (data.primaryPhoneNumber() != null) data.primaryPhoneNumber()
+            else data.possiblePhoneNumbers().firstOrNull()
+
+        val email =
+            if (data.primaryEmail() != null) data.primaryEmail()
+            else data.possibleEmails().firstOrNull()
+
         val myVCard = VCard(data.primaryName())
-            .setPhoneNumber(data.primaryPhoneNumber())
-            .setEmail(data.primaryEmail())
+            .setPhoneNumber(phoneNumber)
+            .setEmail(email)
 
         val displayMetrics = DisplayMetrics()
         windowManager.defaultDisplay.getMetrics(displayMetrics)
