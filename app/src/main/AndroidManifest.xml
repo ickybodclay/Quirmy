@@ -6,16 +6,7 @@
 
     <dist:module dist:instant="true" />
 
-    <!-- Allows application to view phone state like using readLine1Number() -->
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <!-- Required to access the Contacts Provider and user profile -->
-    <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-
-    <!-- Allows the application to use telephony to get the devices phone number when telephony is available without requiring telephony -->
-    <uses-feature
-        android:name="android.hardware.telephony"
-        android:required="false" />
 
     <application
         android:allowBackup="false"

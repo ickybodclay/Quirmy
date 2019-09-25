@@ -19,7 +19,7 @@ import net.glxn.qrgen.core.scheme.VCard
 
 class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<AccountUtils.UserProfile> {
 
-    private val MY_PERMISSIONS_REQUEST_READ = 0
+    private val MY_PERMISSIONS_REQUEST_READ_CONTACTS = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,11 +30,6 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<AccountU
                 this,
                 Manifest.permission.READ_CONTACTS
             )
-            != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_PHONE_STATE
-            )
             != PackageManager.PERMISSION_GRANTED
         ) {
             // Permission is not granted
@@ -42,10 +37,9 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<AccountU
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(
-                    Manifest.permission.READ_CONTACTS,
-                    Manifest.permission.READ_PHONE_STATE
+                    Manifest.permission.READ_CONTACTS
                 ),
-                MY_PERMISSIONS_REQUEST_READ
+                MY_PERMISSIONS_REQUEST_READ_CONTACTS
             )
         } else {
             LoaderManager.getInstance(this).initLoader(0, Bundle.EMPTY, this)
@@ -57,7 +51,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<AccountU
         permissions: Array<String>, grantResults: IntArray
     ) {
         when (requestCode) {
-            MY_PERMISSIONS_REQUEST_READ -> {
+            MY_PERMISSIONS_REQUEST_READ_CONTACTS -> {
                 // If request is cancelled, the result arrays are empty.
                 // FIXME should check that all grants are granted
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
@@ -67,6 +61,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<AccountU
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
+                    Log.w(localClassName, "Read Contacts permission denied, unable to get user profile.")
                 }
                 return
             }
